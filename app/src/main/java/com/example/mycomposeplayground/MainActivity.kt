@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StampedPathEffectStyle
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.TileMode
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,8 +54,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxHeight(),
                     // color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
-
+                    // Greeting("Android")
+                    DifferentLine()
                 }
             }
         }
@@ -109,41 +110,41 @@ fun CanVasPlay() {
               color = Color.Blue
           )*/
 
-          drawLine(
-              brush = Brush.linearGradient(
-                  colors = listOf(Color.Red,Color.Blue),
-              //    tileMode = TileMode.Repeated,
-                  end = Offset(size.width-10f,30f)
-              ) ,
-              start = Offset(10f,30f),
-              end = Offset(size.width-10f,30f),
-              strokeWidth = 20f,
+        drawLine(
+            brush = Brush.linearGradient(
+                colors = listOf(Color.Red, Color.Blue),
+                //    tileMode = TileMode.Repeated,
+                end = Offset(size.width - 10f, 30f)
+            ),
+            start = Offset(10f, 30f),
+            end = Offset(size.width - 10f, 30f),
+            strokeWidth = 20f,
 
-          )
-          drawLine(
-              brush = Brush.radialGradient(
-                  colors = listOf(Color.Red, Color.Green),
-                  center = Offset(size.width/2,60f)
-              ),
-              start = Offset(x = 100f, y = 60f),
-              end = Offset(x = size.width - 100f, y = 60f),
-              strokeWidth = 20f,
-          )
+            )
+        drawLine(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Green),
+                center = Offset(size.width / 2, 60f)
+            ),
+            start = Offset(x = 100f, y = 60f),
+            end = Offset(x = size.width - 100f, y = 60f),
+            strokeWidth = 20f,
+        )
 
-          drawLine(
-              pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f)),
-              start = Offset(10f,90f),
-              end = Offset(size.width-10f,90f),
-              color = Color.Blue,
-              strokeWidth = 5f
-          )
-          drawLine(
-              pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f), phase = 25f),
-              start = Offset(10f,120f),
-              end = Offset(size.width-10f,120f),
-              color = Color.Blue,
-              strokeWidth = 5f
-          )
+        drawLine(
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)),
+            start = Offset(10f, 90f),
+            end = Offset(size.width - 10f, 90f),
+            color = Color.Blue,
+            strokeWidth = 5f
+        )
+        drawLine(
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), phase = 25f),
+            start = Offset(10f, 120f),
+            end = Offset(size.width - 10f, 120f),
+            color = Color.Blue,
+            strokeWidth = 5f
+        )
         val path = Path().apply {
             moveTo(10f, 100f)
             lineTo(500f, 100f)
@@ -171,9 +172,9 @@ fun CanVasPlay() {
         drawPath(newPath, color = Color.Blue, style = Fill)
 
         val iconSizeInDp = 80.dp
-        val iconSizeInPx = with(density){ iconSizeInDp.toPx()}
-        val horizontalMargin = with(density){ 10.dp.toPx()}
-        val contentHeight = with(density){ 100.dp.toPx()}
+        val iconSizeInPx = with(density) { iconSizeInDp.toPx() }
+        val horizontalMargin = with(density) { 10.dp.toPx() }
+        val contentHeight = with(density) { 100.dp.toPx() }
         val curvePath = Path().apply {
             /*quadraticBezierTo(
                 x1 =size.width,
@@ -181,22 +182,22 @@ fun CanVasPlay() {
                 y1 = size.height,
                 y2 = size.height
             )*/
-         //  moveTo(0f,2000f)
-       //     cubicTo(x3 = size.width, y3 = 0f,
-         //       x1 = size.width/2, y1 = 0f,
-          //      x2 = size.width/2, y2 = size.height)
-            moveTo(horizontalMargin,size.height/2)
-            lineTo(size.width/2 - iconSizeInPx/2,size.height/2)
-              quadraticBezierTo(
-                x2 = size.width/2 -horizontalMargin+ iconSizeInPx/2,
-              y2 =  size.height/2,
-             x1 = size.width/2 -horizontalMargin,
-             y1 = size.height/2 - iconSizeInPx/2,
+            //  moveTo(0f,2000f)
+            //     cubicTo(x3 = size.width, y3 = 0f,
+            //       x1 = size.width/2, y1 = 0f,
+            //      x2 = size.width/2, y2 = size.height)
+            moveTo(horizontalMargin, size.height / 2)
+            lineTo(size.width / 2 - iconSizeInPx / 2, size.height / 2)
+            quadraticBezierTo(
+                x2 = size.width / 2 - horizontalMargin + iconSizeInPx / 2,
+                y2 = size.height / 2,
+                x1 = size.width / 2 - horizontalMargin,
+                y1 = size.height / 2 - iconSizeInPx / 2,
             )
-           // moveTo(size.width/2 + 200f, size.height/2)
-            lineTo(size.width -horizontalMargin,size.height/2)
-            lineTo(size.width -horizontalMargin,size.height/2 + contentHeight)
-            lineTo(horizontalMargin,size.height/2 + contentHeight)
+            // moveTo(size.width/2 + 200f, size.height/2)
+            lineTo(size.width - horizontalMargin, size.height / 2)
+            lineTo(size.width - horizontalMargin, size.height / 2 + contentHeight)
+            lineTo(horizontalMargin, size.height / 2 + contentHeight)
             close()
 
 
@@ -204,17 +205,19 @@ fun CanVasPlay() {
         //   drawLine(Color.Green, start =  Offset(100f,0f), end = Offset(100f,300f), strokeWidth = 2f)
         drawPath(curvePath, color = Color.Black, style = Stroke(width = 2f))
 
-        drawCircle(Color.Blue, radius = 100f,Offset(200f,500f), style = Fill)
-        drawOval(Color.Red, Offset(200f,700f), style = Fill,size= Size(40f,80f))
-        drawLine(Color.Green, start = Offset(200f,0f), end =Offset(200f, y = 500f))
-        drawLine(Color.Green, start = Offset(0f,500f), end = Offset(200f,500f))
-        drawCircle(color = Color.Magenta, radius = 100f, Offset(300f,500f),
-        style = Stroke(
-            width = 5.dp.toPx(),
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f), phase = 100f),
-            join = StrokeJoin.Bevel,
-            cap = StrokeCap.Butt
-        ))
+        drawCircle(Color.Blue, radius = 100f, Offset(200f, 500f), style = Fill)
+        drawOval(Color.Red, Offset(200f, 700f), style = Fill, size = Size(40f, 80f))
+        drawLine(Color.Green, start = Offset(200f, 0f), end = Offset(200f, y = 500f))
+        drawLine(Color.Green, start = Offset(0f, 500f), end = Offset(200f, 500f))
+        drawCircle(
+            color = Color.Magenta, radius = 100f, Offset(300f, 500f),
+            style = Stroke(
+                width = 5.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), phase = 100f),
+                join = StrokeJoin.Bevel,
+                cap = StrokeCap.Butt
+            )
+        )
         val path3 = Path().apply {
             moveTo(10f, 0f)
             lineTo(20f, 10f)
@@ -240,13 +243,97 @@ fun CanVasPlay() {
         )
 
     }
-
 }
+
+@Composable
+fun DifferentLine() {
+    Canvas(modifier = smallCanvasModifier) {
+        drawLine(
+            start = Offset(10f, 5f),
+            end = Offset(x = size.width - 10f, y = 5f),
+            color = Color.Blue,
+        )
+        drawLine(
+            color = Color.Red,
+            start = Offset(x = 10f, y = 25f),
+            end = Offset(x = size.width - 10f, y = 25f),
+            strokeWidth = 10f
+        )
+        drawLine(
+            brush = Brush.linearGradient(
+                colors = listOf(Color.Red, Color.Blue, Color.Green)
+            ),
+            start = Offset(x = 10f, y = 40f),
+            end = Offset(x = size.width - 10f, y = 40f),
+            strokeWidth = 10f
+        )
+        drawLine(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Blue, Color.Green),
+                center = Offset((size.width -20f)/2, 60f),
+                tileMode = TileMode.Clamp
+
+            ),
+            start = Offset(x = 10f, y = 60f),
+            end = Offset(x = size.width - 10f, y = 60f),
+            strokeWidth = 10f
+        )
+        drawLine(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Blue, Color.Green),
+                center = Offset((size.width -20f)/2, 80f),
+                tileMode = TileMode.Repeated
+
+            ),
+            start = Offset(x = 10f, y = 80f),
+            end = Offset(x = size.width - 10f, y = 80f),
+            strokeWidth = 10f
+        )
+        drawLine(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Blue, Color.Green),
+                center = Offset((size.width -20f)/2, 100f),
+                tileMode = TileMode.Mirror
+
+            ),
+            start = Offset(x = 10f, y = 100f),
+            end = Offset(x = size.width - 10f, y = 100f),
+            strokeWidth = 10f
+        )
+        drawLine(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Blue, Color.Green),
+                center = Offset((size.width -20f)/2, 120f),
+                tileMode = TileMode.Decal
+
+            ),
+            start = Offset(x = 10f, y = 120f),
+            end = Offset(x = size.width - 10f, y = 120f),
+            strokeWidth = 10f
+        )
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     MyComposePlayGroundTheme {
-        CanVasPlay()
+        //CanVasPlay()
+        DifferentLine()
     }
 }
+
+val smallCanvasModifier = Modifier
+    .padding(8.dp)
+    .background(Color.White)
+    .height(60.dp)
+    .fillMaxWidth()
+
+val bigCanvasModifier = Modifier
+    .padding(8.dp)
+    .background(Color.White)
+    .height(100.dp)
+    .fillMaxWidth()
+
+
