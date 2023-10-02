@@ -3,9 +3,10 @@ package com.example.mycomposeplayground
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -31,10 +31,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.mycomposeplayground.ui.theme.MyComposePlayGroundTheme
-import androidx.compose.material3.Surface
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StampedPathEffectStyle
@@ -55,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     // color = MaterialTheme.colorScheme.background
                 ) {
                     // Greeting("Android")
-                    DifferentLine()
+                    DrawingDifferentLines()
                 }
             }
         }
@@ -246,11 +244,11 @@ fun CanVasPlay() {
 }
 
 @Composable
-fun DifferentLine() {
+fun DrawingDifferentLines() {
     Canvas(modifier = smallCanvasModifier) {
         drawLine(
-            start = Offset(10f, 5f),
-            end = Offset(x = size.width - 10f, y = 5f),
+            start = Offset(10f, 10f),
+            end = Offset(x = size.width - 10f, y = 10f),
             color = Color.Blue,
         )
         drawLine(
@@ -311,6 +309,66 @@ fun DifferentLine() {
             end = Offset(x = size.width - 10f, y = 120f),
             strokeWidth = 10f
         )
+        drawLine(
+            brush = Brush.sweepGradient(
+                colors = listOf(Color.Red, Color.Green, Color.Blue),
+                center = Offset(size.width/4,140f)
+            ),
+            start = Offset(x = 10f, y = 140f),
+            end = Offset(x = size.width - 10f, y = 140f),
+            strokeWidth = 20f,
+        )
+        drawLine(
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)),
+            start = Offset(10f, 160f),
+            end = Offset(size.width - 10f, 160f),
+            color = Color.Cyan,
+            strokeWidth = 10f
+        )
+        drawLine(
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), phase = 25f),
+            start = Offset(10f, 180f),
+            end = Offset(size.width - 10f, 180f),
+            color = Color.Cyan,
+            strokeWidth = 10f
+        )
+
+        drawLine(
+            pathEffect = PathEffect.stampedPathEffect(
+                shape = diamondPath,
+                advance = 15f,//Spacing between each stamped shape
+                phase = 0f,
+                style = StampedPathEffectStyle.Rotate
+            ),
+            start = Offset(10f,200f),
+            end = Offset(size.width-10f,200f),
+            color = Color.Green,
+            strokeWidth = 10f
+        )
+        drawLine(
+            pathEffect = PathEffect.stampedPathEffect(
+                shape = diamondPath,
+                advance = 15f,//Spacing between each stamped shape
+                phase = 0f, //offset for first stampede.
+                style = StampedPathEffectStyle.Morph
+            ),
+            start = Offset(10f,220f),
+            end = Offset(size.width-10f,220f),
+            color = Color.Green,
+            strokeWidth = 10f
+        )
+        drawLine(
+            pathEffect = PathEffect.stampedPathEffect(
+                shape = diamondPath,
+                advance = 25f,//Spacing between each stamped shape
+                phase = 10f, //offset for first stampede.
+                style = StampedPathEffectStyle.Morph
+            ),
+            start = Offset(10f,240f),
+            end = Offset(size.width-10f,240f),
+            color = Color.Red,
+            strokeWidth = 10f
+        )
     }
 }
 
@@ -320,20 +378,30 @@ fun DifferentLine() {
 fun GreetingPreview() {
     MyComposePlayGroundTheme {
         //CanVasPlay()
-        DifferentLine()
+        DrawingDifferentLines()
     }
 }
 
 val smallCanvasModifier = Modifier
     .padding(8.dp)
     .background(Color.White)
-    .height(60.dp)
+    .height(100.dp)
     .fillMaxWidth()
+    .border(border = BorderStroke(width = 2.dp, color = Color.Black))
 
 val bigCanvasModifier = Modifier
     .padding(8.dp)
     .background(Color.White)
-    .height(100.dp)
+    .height(150.dp)
     .fillMaxWidth()
+    .border(border = BorderStroke(width = 2.dp, color = Color.Black))
+
+val diamondPath = Path().apply {
+    moveTo(10f,0f)
+    lineTo(5f,5f)
+    lineTo(0f,0f)
+    lineTo(5f,-5f)
+    close()
+}
 
 
