@@ -61,7 +61,6 @@ import com.patrykandpatrick.vico.compose.common.shader.color
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
-import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
@@ -537,10 +536,10 @@ fun DrawVicoGraph() {
 
 class CustomVerticalAxis(
     override val position: AxisPosition.Vertical.Start,
-    var customDrawable: Drawable? = null,
-    var howFarAboveTheChart: Int = 0,
-    var howFarBelowTheChart: Int = 0,
-    var offsetX: Int = 0,
+    private var customDrawable: Drawable? = null,
+    private var howFarAboveTheChart: Int,
+    private var howFarBelowTheChart: Int,
+    private var offsetX: Int,
 ) : VerticalAxis<AxisPosition.Vertical.Start>(position) {
     override fun drawBehindChart(context: CartesianDrawContext) {
         super.drawBehindChart(context)
@@ -666,38 +665,23 @@ class CustomVerticalAxis(
         }
     }
 
-    class Builder(
-        builder: BaseAxis.Builder<AxisPosition.Vertical.Start>? = null
-    ) {
-        private val baseBuilder: VerticalAxis.Builder<AxisPosition.Vertical.Start> =
-            VerticalAxis.Builder(builder)
+    class Builder {
+        private var custom: Drawable? = null
+        private var howFarAboveTheChart : Int = 0
+        private var howFarBelowTheChart : Int = 0
+        private var offsetX : Int = 0
+        fun setCustomDrawable(drawable: Drawable?) = apply { custom = drawable }
+        fun setTop(top : Int) : Builder = apply { howFarAboveTheChart = top }
+        fun setBottom(bottom : Int) : Builder = apply { howFarBelowTheChart = bottom }
+        fun setOffset(adjustX: Int) : Builder = apply { offsetX = adjustX }
 
-        private var customDrawable: Drawable? = null
-        fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
-            return CustomVerticalAxis(position, customDrawable).apply {
-                // Copy properties from baseBuilder to this instance
-                this.label = baseBuilder.label
-                this.axisLine = baseBuilder.axis
-                this.tick = baseBuilder.tick
-                this.guideline = baseBuilder.guideline
-                this.valueFormatter = baseBuilder.valueFormatter
-                this.tickLengthDp = baseBuilder.tickLengthDp
-                this.sizeConstraint = baseBuilder.sizeConstraint
-                this.horizontalLabelPosition = baseBuilder.horizontalLabelPosition
-                this.verticalLabelPosition = baseBuilder.verticalLabelPosition
-                this.itemPlacer = baseBuilder.itemPlacer
-                this.labelRotationDegrees = baseBuilder.labelRotationDegrees
-                this.titleComponent = baseBuilder.titleComponent
-                this.title = baseBuilder.title
-            }
-        }
-    }
-
-
-    companion object {
-        fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
-            return Builder().build(position)
-        }
+        fun build()  = CustomVerticalAxis(
+            position = AxisPosition.Vertical.Start,
+            customDrawable = custom,
+            howFarAboveTheChart =howFarAboveTheChart,
+            howFarBelowTheChart=howFarBelowTheChart,
+            offsetX = offsetX
+        )
     }
 }
 
@@ -715,17 +699,18 @@ fun rememberDrawableAxisVerticalStart(
     }
     return remember {
 
-        CustomVerticalAxis.build(AxisPosition.Vertical.Start).apply {
-            this.howFarAboveTheChart = top
-            this.howFarBelowTheChart = below
-            this.offsetX = offset
-            this.customDrawable = customDrawable
+        CustomVerticalAxis.Builder()
+            .setCustomDrawable(customDrawable)
+            .setTop(top)
+            .setBottom(below)
+            .setOffset(offset)
+            .build().apply {
             this.label = startAxis.label
-            axisLine = startAxis.axisLine
+            this.axisLine = startAxis.axisLine
             this.tick = startAxis.tick
             this.guideline = startAxis.guideline
             this.valueFormatter = startAxis.valueFormatter
-            tickLengthDp = startAxis.tickLengthDp
+            this.tickLengthDp = startAxis.tickLengthDp
             this.sizeConstraint = startAxis.sizeConstraint
             this.horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside
             this.verticalLabelPosition = startAxis.verticalLabelPosition
@@ -798,7 +783,7 @@ class CustomHorizontalBox(
 
     /** @suppress */
     companion object {
-        val decimalFormat = DecimalFormat("#.##;−#.##")
+        private val decimalFormat = DecimalFormat("#.##;−#.##")
 
         fun getLabel(y: ClosedFloatingPointRange<Float>): String =
             "${decimalFormat.format(y.start)}–${decimalFormat.format(y.endInclusive)}"
