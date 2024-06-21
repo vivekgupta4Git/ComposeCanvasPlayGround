@@ -3,7 +3,6 @@ package com.example.mycomposeplayground
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -47,11 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mycomposeplayground.ui.theme.MyComposePlayGroundTheme
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLineComponent
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisTickComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
@@ -60,20 +58,15 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.shader.color
-import com.patrykandpatrick.vico.compose.common.shape.dashed
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
-import com.patrykandpatrick.vico.core.cartesian.FadingEdges
-import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.decoration.Decoration
 import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalBox
-import com.patrykandpatrick.vico.core.common.Defaults
 import com.patrykandpatrick.vico.core.common.HorizontalPosition
 import com.patrykandpatrick.vico.core.common.VerticalPosition
 import com.patrykandpatrick.vico.core.common.component.LineComponent
@@ -464,11 +457,10 @@ fun DrawVicoGraph() {
         withContext(Dispatchers.Default) {
             modelProducer.tryRunTransaction {
                 val y = x.map { Random.nextFloat() * 25 }
-                updateExtras {
-                    extraStore ->
+                updateExtras { extraStore ->
                     extraStore[extraKey] = y.average().toFloat()..y.max()
                 }
-                lineSeries { series(x,y ) }
+                lineSeries { series(x, y) }
             }
         }
     }
@@ -479,31 +471,43 @@ fun DrawVicoGraph() {
             rememberLineCartesianLayer(
                 listOf(rememberLineSpec(shader = DynamicShader.color(Color(0xffa485e0))))
             ),
-            startAxis = rememberCustomAxis(
+            startAxis = rememberDrawableAxisVerticalStart(
                 customDrawable = ctx.getDrawable(R.drawable.girafee),
-                axis = LineComponent(
-                    color = android.graphics.Color.RED),
-                label = rememberAxisLabelComponent(
-                    color = Color.Red.copy(0.8f),
-                    textSize = 8.sp,
-                ),
+                howFarBelowTheChart = 55.dp,
+                howFarAboveTheChart = 55.dp,
+                offsetX = 30.dp,
+                startAxis = rememberStartAxis(
+                    axis = LineComponent(
+                        color = android.graphics.Color.RED
+                    ),
+                    label = rememberAxisLabelComponent(
+                        color = Color.Red.copy(0.8f),
+                        textSize = 8.sp,
+                    ),
+                    title = null,
+                    titleComponent = rememberTextComponent(
+                        color = Color.Red,
+                        background = rememberShapeComponent(
+                            shape = Shape.Rectangle
+                        )
+                    ),
 //                tick = rememberLineComponent(
 //                    color = Color.Red.copy(0.5f),
 //                    shape = Shape.dashed(shape = Shape.Rectangle, gapLength = 10.dp, dashLength = 4.dp)
 //                ),
 //                tickLength = 500.dp,
-                tick = rememberLineComponent(
-                    color=Color.Red
-                ),
-                howFarBelowTheChart = 120,
-                adjustLeftBy =18,
-                guideline = null,
-                valueFormatter = {
-                    y,_,_ ->
-                    DecimalFormat("00.##;−00.##").format(y)
-                }
+                    tick = rememberLineComponent(
+                        color = Color.Red
+                    ),
+
+                    guideline = null,
+                    valueFormatter = { y, _, _ ->
+                        DecimalFormat("00.##;−00.##").format(y)
+                    }
+                )
             ),
-            bottomAxis = rememberBottomAxis(guideline = null,
+            bottomAxis = rememberBottomAxis(
+                guideline = null,
                 axis = rememberAxisLineComponent(
                     color = Color.Red
                 ),
@@ -515,102 +519,121 @@ fun DrawVicoGraph() {
                 )
             ),
             decorations = listOf(
-                rememberCustomHorizontalBox(y = {
-                                          it[extraKey]
-                }, box = rememberShapeComponent(
-                    color = Color.Green.copy(alpha = 0.2f),
-                    shape = Shape.Rectangle,
-                ))
+                rememberCustomHorizontalBox(
+                    y = {
+                        it[extraKey]
+                    }, box = rememberShapeComponent(
+                        color = Color.Green.copy(alpha = 0.2f),
+                        shape = Shape.Rectangle,
+                    )
+                )
             )
         ),
         modelProducer = modelProducer,
-        modifier = Modifier.padding(vertical = 40.dp, horizontal = 10.dp),
+        modifier = Modifier.padding(vertical = 40.dp, horizontal = 0.dp),
         zoomState = rememberVicoZoomState(zoomEnabled = false),
     )
 }
 
 class CustomVerticalAxis(
-     override val position: AxisPosition.Vertical.Start,
-     var customDrawable: Drawable? = null,
-      var howFarAboveTheChart: Int = 150,
-      var howFarBelowTheChart : Int = 80,
-      var adjustLeftBy : Int = 15,
+    override val position: AxisPosition.Vertical.Start,
+    var customDrawable: Drawable? = null,
+    var howFarAboveTheChart: Int = 0,
+    var howFarBelowTheChart: Int = 0,
+    var offsetX: Int = 0,
 ) : VerticalAxis<AxisPosition.Vertical.Start>(position) {
-     override fun drawBehindChart(context: CartesianDrawContext) {
-         super.drawBehindChart(context)
-         with(context) {
-             val drawableLeftX = bounds.right - axisThickness
-             val drawableRightX = drawableLeftX + axisThickness
-             customDrawable?.let { drawable ->
-                 val drawableLeft = ((drawableLeftX + drawableRightX) /2 - (drawable.intrinsicWidth /2) ) - adjustLeftBy
-                 val drawableTop = bounds.top.toInt() -howFarAboveTheChart
-                 val drawableBottom = bounds.bottom.toInt() + howFarBelowTheChart
-                 drawable.setBounds(
-                     drawableLeft.toInt(),
-                     drawableTop,
-                     (drawableLeft + drawable.intrinsicWidth).toInt(),
-                     drawableBottom
-                 )
-                 drawable.draw(context.canvas)
-             }
-             val label = label
-             val labelValues = itemPlacer.getLabelValues(context = context,bounds.height(),getMaxLabelHeight(),AxisPosition.Vertical.Start)
-             val leftTick = bounds.right -bounds.left - axisThickness/2
-             val rightTick = leftTick + tickLength
-             val yRange = chartValues.getYRange(AxisPosition.Vertical.Start)
-             var tickCenterY : Float
-             val labelX = bounds.right - axisThickness
+    override fun drawBehindChart(context: CartesianDrawContext) {
+        super.drawBehindChart(context)
+        with(context) {
 
-             labelValues.forEach {labelValue ->
-                 tickCenterY =
-                     bounds.bottom - bounds.height() * (labelValue - yRange.minY) / yRange.length +
-                             getLineCanvasYCorrection(tickThickness, labelValue)
-                 tick?.drawHorizontal(
-                     context = context,
-                     left = leftTick,
-                     right = rightTick,
-                     centerY = tickCenterY
-                 )
-                 label ?: return@forEach
-                 drawLabel(
-                     context = this,
-                     label = label,
-                     labelText = valueFormatter.format(labelValue, chartValues, position),
-                     labelX = labelX,
-                     tickCenterY = tickCenterY,
-                 )
-             }
-         }
-     }
+            customDrawable?.let { drawable ->
+                 val drawableTop = bounds.top.toInt() - howFarAboveTheChart
+                val drawableBottom = bounds.bottom.toInt() + howFarBelowTheChart
+                drawable.setBounds(
+                    bounds.left.toInt(),
+                    drawableTop,
+                    bounds.right.toInt() - axisThickness.toInt() + offsetX,
+                    drawableBottom
+                )
+                drawable.draw(context.canvas)
+            }
+            val label = label
+            val labelValues = itemPlacer.getLabelValues(
+                context = context,
+                bounds.height(),
+                getMaxLabelHeight(),
+                AxisPosition.Vertical.Start
+            )
+            val leftTick = bounds.right - bounds.left - axisThickness / 2
+            val rightTick = leftTick + tickLength
+            val yRange = chartValues.getYRange(AxisPosition.Vertical.Start)
+            var tickCenterY: Float
+            val labelX = bounds.right - axisThickness
+
+            labelValues.forEach { labelValue ->
+                tickCenterY =
+                    bounds.bottom - bounds.height() * (labelValue - yRange.minY) / yRange.length +
+                            getLineCanvasYCorrection(tickThickness, labelValue)
+                tick?.drawHorizontal(
+                    context = context,
+                    left = leftTick,
+                    right = rightTick,
+                    centerY = tickCenterY
+                )
+                label ?: return@forEach
+                drawLabel(
+                    context = this,
+                    label = label,
+                    labelText = valueFormatter.format(labelValue, chartValues, position),
+                    labelX = labelX,
+                    tickCenterY = tickCenterY,
+                )
+            }
+        }
+    }
+
     override fun getDesiredWidth(context: CartesianMeasureContext, height: Float): Float =
         with(context) {
+            val drawableWidth = customDrawable?.let { drawable ->
+                (drawable.intrinsicWidth/2).toFloat()
+            }.orZero
+            val titleComponentWidth =
+                title
+                    ?.let { title ->
+                        titleComponent?.getWidth(
+                            context = this,
+                            text = title,
+                            rotationDegrees = 90f,
+                            height = bounds.height().toInt(),
+                        )
+                    }
+                    .orZero
+            val labelSpace =
+                when (horizontalLabelPosition) {
+                    HorizontalLabelPosition.Outside -> {
+                        val maxLabelWidth = getMaxLabelWidth(height).ceil
+                        extraStore[maxLabelWidthKey] = maxLabelWidth
+                        maxLabelWidth + tickLength
+                    }
+                    HorizontalLabelPosition.Inside -> 0f
+                }
+
             when (val constraint = sizeConstraint) {
                 is SizeConstraint.Auto -> {
-                    val titleComponentWidth =
-                        title
-                            ?.let { title ->
-                                titleComponent?.getWidth(
-                                    context = this,
-                                    text = title,
-                                    rotationDegrees = 90f,
-                                    height = bounds.height().toInt(),
-                                )
-                            }
-                            .orZero
-                    val labelSpace =
-                        when (horizontalLabelPosition) {
-                            HorizontalLabelPosition.Outside -> {
-                                val maxLabelWidth = getMaxLabelWidth(height).ceil
-                                extraStore[maxLabelWidthKey] = maxLabelWidth
-                                maxLabelWidth
-                            }
-                            HorizontalLabelPosition.Inside -> 0f
-                        }
-                    (labelSpace + titleComponentWidth + axisThickness).coerceIn(
+                    if(drawableWidth == 0f){
+                        (titleComponentWidth + axisThickness + labelSpace)
+                            .coerceIn(
+                                minimumValue = constraint.minSizeDp.pixels,
+                                maximumValue = constraint.maxSizeDp.pixels,
+                            )
+                    }
+                else
+                    (axisThickness + drawableWidth).coerceIn(
                         minimumValue = constraint.minSizeDp.pixels,
                         maximumValue = constraint.maxSizeDp.pixels,
                     )
                 }
+
                 is SizeConstraint.Exact -> constraint.sizeDp.pixels
                 is SizeConstraint.Fraction -> canvasBounds.width() * constraint.fraction
                 is SizeConstraint.TextWidth ->
@@ -620,96 +643,101 @@ class CustomVerticalAxis(
                             text = constraint.text,
                             rotationDegrees = labelRotationDegrees,
                         )
-                        .orZero  + axisThickness.half
+                        .orZero + axisThickness.half + drawableWidth
             }
         }
 
     override fun drawAboveChart(context: CartesianDrawContext) {
-      //  super.drawAboveChart(context)
+        // super.drawAboveChart(context)
+        with(context){
+
+            title?.let { title ->
+                titleComponent?.drawText(
+                    context = this,
+                    text = title,
+                    textX = bounds.left,
+                    textY = bounds.centerY(),
+                    horizontalPosition =HorizontalPosition.End,
+                    verticalPosition = VerticalPosition.Center,
+                    rotationDegrees = 90f * if (position.isStart) -1f else 1f,
+                    maxTextHeight = bounds.height().toInt(),
+                )
+            }
+        }
     }
 
     class Builder(
-             builder: BaseAxis.Builder<AxisPosition.Vertical.Start>? = null
-         ) {
-             private val baseBuilder: VerticalAxis.Builder<AxisPosition.Vertical.Start> =
-                 VerticalAxis.Builder(builder)
+        builder: BaseAxis.Builder<AxisPosition.Vertical.Start>? = null
+    ) {
+        private val baseBuilder: VerticalAxis.Builder<AxisPosition.Vertical.Start> =
+            VerticalAxis.Builder(builder)
 
-             private var customDrawable: Drawable? = null
-             fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
-                 return CustomVerticalAxis(position, customDrawable).apply {
-                     // Copy properties from baseBuilder to this instance
-                     this.label = baseBuilder.label
-                     this.axisLine = baseBuilder.axis
-                     this.tick = baseBuilder.tick
-                     this.guideline = baseBuilder.guideline
-                     this.valueFormatter = baseBuilder.valueFormatter
-                     this.tickLengthDp = baseBuilder.tickLengthDp
-                     this.sizeConstraint = baseBuilder.sizeConstraint
-                     this.horizontalLabelPosition = baseBuilder.horizontalLabelPosition
-                     this.verticalLabelPosition = baseBuilder.verticalLabelPosition
-                     this.itemPlacer = baseBuilder.itemPlacer
-                     this.labelRotationDegrees = baseBuilder.labelRotationDegrees
-                     this.titleComponent = baseBuilder.titleComponent
-                     this.title = baseBuilder.title
-                 }
-             }
-         }
-
-
-
-         companion object {
-             fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
-                 return Builder().build(position)
-             }
-         }
-     }
-
-
-@Composable
- fun rememberCustomAxis(
-    label: TextComponent? = rememberAxisLabelComponent(),
-    axis: LineComponent? = rememberAxisLineComponent(),
-    tick: LineComponent? = rememberAxisTickComponent(),
-    tickLength: Dp = Defaults.AXIS_TICK_LENGTH.dp,
-    guideline: LineComponent? = rememberAxisGuidelineComponent(),
-    valueFormatter: CartesianValueFormatter = remember { CartesianValueFormatter.decimal() },
-    sizeConstraint: BaseAxis.SizeConstraint = BaseAxis.SizeConstraint.Auto(),
-   // horizontalLabelPosition: VerticalAxis.HorizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside,
-    verticalLabelPosition: VerticalAxis.VerticalLabelPosition =
-        VerticalAxis.VerticalLabelPosition.Center,
-    itemPlacer: AxisItemPlacer.Vertical = remember { AxisItemPlacer.Vertical.step() },
-    labelRotationDegrees: Float = Defaults.AXIS_LABEL_ROTATION_DEGREES,
-    titleComponent: TextComponent? = null,
-    title: CharSequence? = null,
-    customDrawable: Drawable? = null,
-    howFarAboveTheChart: Int = 150,
-    howFarBelowTheChart : Int = 80,
-    adjustLeftBy : Int =10,
-): CustomVerticalAxis =
-    remember {
-        CustomVerticalAxis.build(AxisPosition.Vertical.Start).apply {
-            this.howFarAboveTheChart = howFarAboveTheChart
-            this.howFarBelowTheChart = howFarBelowTheChart
-            this.adjustLeftBy = adjustLeftBy
-            this.customDrawable = customDrawable
-            this.label = label
-            axisLine = axis
-            this.tick = tick
-            this.guideline = guideline
-            this.valueFormatter = valueFormatter
-            tickLengthDp = tickLength.value
-            this.sizeConstraint = sizeConstraint
-            this.horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside
-            this.verticalLabelPosition = verticalLabelPosition
-            this.itemPlacer = itemPlacer
-            this.labelRotationDegrees = labelRotationDegrees
-            this.titleComponent = titleComponent
-            this.title = title
+        private var customDrawable: Drawable? = null
+        fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
+            return CustomVerticalAxis(position, customDrawable).apply {
+                // Copy properties from baseBuilder to this instance
+                this.label = baseBuilder.label
+                this.axisLine = baseBuilder.axis
+                this.tick = baseBuilder.tick
+                this.guideline = baseBuilder.guideline
+                this.valueFormatter = baseBuilder.valueFormatter
+                this.tickLengthDp = baseBuilder.tickLengthDp
+                this.sizeConstraint = baseBuilder.sizeConstraint
+                this.horizontalLabelPosition = baseBuilder.horizontalLabelPosition
+                this.verticalLabelPosition = baseBuilder.verticalLabelPosition
+                this.itemPlacer = baseBuilder.itemPlacer
+                this.labelRotationDegrees = baseBuilder.labelRotationDegrees
+                this.titleComponent = baseBuilder.titleComponent
+                this.title = baseBuilder.title
+            }
         }
     }
 
 
- class CustomHorizontalBox(
+    companion object {
+        fun build(position: AxisPosition.Vertical.Start): CustomVerticalAxis {
+            return Builder().build(position)
+        }
+    }
+}
+
+
+@Composable
+fun rememberDrawableAxisVerticalStart(
+    startAxis: VerticalAxis<AxisPosition.Vertical.Start> = rememberStartAxis(),
+    customDrawable: Drawable? = null,
+    howFarAboveTheChart: Dp = 0.dp,
+    howFarBelowTheChart: Dp =0.dp,
+    offsetX: Dp = 0.dp,
+): CustomVerticalAxis {
+    val (top,below,offset) = with(LocalDensity.current){
+            Triple(howFarAboveTheChart.roundToPx(),howFarBelowTheChart.roundToPx(),offsetX.roundToPx())
+    }
+    return remember {
+
+        CustomVerticalAxis.build(AxisPosition.Vertical.Start).apply {
+            this.howFarAboveTheChart = top
+            this.howFarBelowTheChart = below
+            this.offsetX = offset
+            this.customDrawable = customDrawable
+            this.label = startAxis.label
+            axisLine = startAxis.axisLine
+            this.tick = startAxis.tick
+            this.guideline = startAxis.guideline
+            this.valueFormatter = startAxis.valueFormatter
+            tickLengthDp = startAxis.tickLengthDp
+            this.sizeConstraint = startAxis.sizeConstraint
+            this.horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside
+            this.verticalLabelPosition = startAxis.verticalLabelPosition
+            this.itemPlacer = startAxis.itemPlacer
+            this.labelRotationDegrees = startAxis.labelRotationDegrees
+            this.titleComponent = startAxis.titleComponent
+            this.title = startAxis.title
+        }
+    }
+}
+
+class CustomHorizontalBox(
     private val y: (ExtraStore) -> ClosedFloatingPointRange<Float>,
     private val box: ShapeComponent,
     private val labelComponent: TextComponent? = null,
@@ -725,7 +753,8 @@ class CustomVerticalAxis(
             val extraStore = chartValues.model.extraStore
             val y = y(extraStore)
             val label = label(extraStore)
-            val topY = bounds.bottom - (y.endInclusive - yRange.minY) / yRange.length * bounds.height()
+            val topY =
+                bounds.bottom - (y.endInclusive - yRange.minY) / yRange.length * bounds.height()
             val bottomY = bounds.bottom - (y.start - yRange.minY) / yRange.length * bounds.height()
             val labelY =
                 when (verticalLabelPosition) {
@@ -763,47 +792,49 @@ class CustomVerticalAxis(
 
     }
 
-      private fun RectF.getStart(isLtr: Boolean): Float = if (isLtr) left else right
+    private fun RectF.getStart(isLtr: Boolean): Float = if (isLtr) left else right
 
-      private fun RectF.getEnd(isLtr: Boolean): Float = if (isLtr) right else left
+    private fun RectF.getEnd(isLtr: Boolean): Float = if (isLtr) right else left
 
     /** @suppress */
-     companion object {
+    companion object {
         val decimalFormat = DecimalFormat("#.##;−#.##")
 
-         fun getLabel(y: ClosedFloatingPointRange<Float>): String =
+        fun getLabel(y: ClosedFloatingPointRange<Float>): String =
             "${decimalFormat.format(y.start)}–${decimalFormat.format(y.endInclusive)}"
     }
-     operator fun HorizontalPosition.unaryMinus() =
-         when (this) {
-             HorizontalPosition.Start -> HorizontalPosition.End
-             HorizontalPosition.Center -> HorizontalPosition.Center
-             HorizontalPosition.End -> HorizontalPosition.Start
-         }
 
-     private fun VerticalPosition.inBounds(
-         bounds: RectF,
-         distanceFromPoint: Float = 0f,
-         componentHeight: Float,
-         y: Float,
-     ): VerticalPosition {
-         val topFits = y - distanceFromPoint - componentHeight >= bounds.top
-         val centerFits =
-             y - componentHeight.half >= bounds.top && y + componentHeight.half <= bounds.bottom
-         val bottomFits = y + distanceFromPoint + componentHeight <= bounds.bottom
+    operator fun HorizontalPosition.unaryMinus() =
+        when (this) {
+            HorizontalPosition.Start -> HorizontalPosition.End
+            HorizontalPosition.Center -> HorizontalPosition.Center
+            HorizontalPosition.End -> HorizontalPosition.Start
+        }
 
-         return when (this) {
-             VerticalPosition.Top -> if (topFits) this else VerticalPosition.Bottom
-             VerticalPosition.Bottom -> if (bottomFits) this else VerticalPosition.Top
-             VerticalPosition.Center ->
-                 when {
-                     centerFits -> this
-                     topFits -> VerticalPosition.Top
-                     else -> VerticalPosition.Bottom
-                 }
-         }
-     }
+    private fun VerticalPosition.inBounds(
+        bounds: RectF,
+        distanceFromPoint: Float = 0f,
+        componentHeight: Float,
+        y: Float,
+    ): VerticalPosition {
+        val topFits = y - distanceFromPoint - componentHeight >= bounds.top
+        val centerFits =
+            y - componentHeight.half >= bounds.top && y + componentHeight.half <= bounds.bottom
+        val bottomFits = y + distanceFromPoint + componentHeight <= bounds.bottom
+
+        return when (this) {
+            VerticalPosition.Top -> if (topFits) this else VerticalPosition.Bottom
+            VerticalPosition.Bottom -> if (bottomFits) this else VerticalPosition.Top
+            VerticalPosition.Center ->
+                when {
+                    centerFits -> this
+                    topFits -> VerticalPosition.Top
+                    else -> VerticalPosition.Bottom
+                }
+        }
+    }
 }
+
 @Composable
 fun rememberCustomHorizontalBox(
     y: (ExtraStore) -> ClosedFloatingPointRange<Float>,
