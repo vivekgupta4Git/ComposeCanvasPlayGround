@@ -1,5 +1,10 @@
 package com.example.mycomposeplayground
 
+import AnimateBox
+import AnimateText
+import GestureAnimation
+import GestureAnimationSimpler
+import TransitionBox
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -9,6 +14,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,11 +98,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(),
-                    // color = MaterialTheme.colorScheme.background
+                    // color = MaterialTheme.colorScheme.background,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Greeting("Android")
                     // DrawingDifferentLines()
-                    DrawVicoGraph()
+                    //DrawVicoGraph()
+                    AnimateBox()
+                    TransitionBox()
+                    AnimateText()
+                    GestureAnimation()
+                    GestureAnimationSimpler()
                 }
             }
         }
