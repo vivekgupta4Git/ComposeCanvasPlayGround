@@ -2,11 +2,12 @@ package com.example.mycomposeplayground
 
 import AnimateBox
 import AnimateText
+import CustomPointerIcon
+import DraggingAllAround
 import GestureAnimation
-import GestureAnimationSimpler
+import InterruptDragAnimation
 import TransitionBox
-import android.graphics.RectF
-import android.graphics.drawable.Drawable
+import UsagePressIconButton
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,17 +17,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -44,49 +46,10 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.mycomposeplayground.ui.theme.MyComposePlayGroundTheme
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLineComponent
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.common.shader.color
-import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
-import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
-import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
-import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.cartesian.decoration.Decoration
-import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalBox
-import com.patrykandpatrick.vico.core.common.HorizontalPosition
-import com.patrykandpatrick.vico.core.common.VerticalPosition
-import com.patrykandpatrick.vico.core.common.component.LineComponent
-import com.patrykandpatrick.vico.core.common.component.ShapeComponent
-import com.patrykandpatrick.vico.core.common.component.TextComponent
-import com.patrykandpatrick.vico.core.common.data.ExtraStore
-import com.patrykandpatrick.vico.core.common.half
-import com.patrykandpatrick.vico.core.common.orZero
-import com.patrykandpatrick.vico.core.common.shader.DynamicShader
-import com.patrykandpatrick.vico.core.common.shape.Shape
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.text.DecimalFormat
-import kotlin.math.ceil
-import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,20 +58,26 @@ class MainActivity : ComponentActivity() {
             MyComposePlayGroundTheme {
                 // A surface container using the 'background' color from the theme
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
+                    modifier = Modifier.fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
                     // color = MaterialTheme.colorScheme.background,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Greeting("Android")
                     // DrawingDifferentLines()
                     //DrawVicoGraph()
+                    CustomPointerIcon()
                     AnimateBox()
                     TransitionBox()
                     AnimateText()
                     GestureAnimation()
-                    GestureAnimationSimpler()
+                  //  GestureAnimationSimpler()
+                    DraggingAllAround()
+                    InterruptDragAnimation()
+                    UsagePressIconButton()
+                    ScaleComposable()
+                    PressAndHover()
                 }
             }
         }
@@ -460,411 +429,3 @@ val diamondPath = Path().apply {
 }
 private val x = (1..50).toList()
 
-@Composable
-fun DrawVicoGraph() {
-    val extraKey = ExtraStore.Key<ClosedFloatingPointRange<Float>>()
-    val modelProducer = remember { CartesianChartModelProducer.build() }
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.Default) {
-            modelProducer.tryRunTransaction {
-                val y = x.map { Random.nextFloat() * 25 }
-                updateExtras { extraStore ->
-                    extraStore[extraKey] = y.average().toFloat()..y.max()
-                }
-                lineSeries { series(x, y) }
-            }
-        }
-    }
-    val ctx = LocalContext.current
-    CartesianChartHost(
-        chart =
-        rememberCartesianChart(
-            rememberLineCartesianLayer(
-                listOf(rememberLineSpec(shader = DynamicShader.color(Color(0xffa485e0))))
-            ),
-            startAxis = rememberDrawableAxisVerticalStart(
-                customDrawable = ctx.getDrawable(R.drawable.girafee),
-                howFarBelowTheChart = 55.dp,
-                howFarAboveTheChart = 55.dp,
-                offsetX = 30.dp,
-                startAxis = rememberStartAxis(
-                    axis = LineComponent(
-                        color = android.graphics.Color.RED
-                    ),
-                    label = rememberAxisLabelComponent(
-                        color = Color.Red.copy(0.8f),
-                        textSize = 8.sp,
-                    ),
-                    title = null,
-                    titleComponent = rememberTextComponent(
-                        color = Color.Red,
-                        background = rememberShapeComponent(
-                            shape = Shape.Rectangle
-                        )
-                    ),
-//                tick = rememberLineComponent(
-//                    color = Color.Red.copy(0.5f),
-//                    shape = Shape.dashed(shape = Shape.Rectangle, gapLength = 10.dp, dashLength = 4.dp)
-//                ),
-//                tickLength = 500.dp,
-                    tick = rememberLineComponent(
-                        color = Color.Red
-                    ),
-
-                    guideline = null,
-                    valueFormatter = { y, _, _ ->
-                        DecimalFormat("00.##;−00.##").format(y)
-                    }
-                )
-            ),
-            bottomAxis = rememberBottomAxis(
-                guideline = null,
-                axis = rememberAxisLineComponent(
-                    color = Color.Red
-                ),
-                tick = rememberLineComponent(
-                    color = Color.Red.copy(0.5f)
-                ),
-                label = rememberTextComponent(
-                    color = Color.Red
-                )
-            ),
-            decorations = listOf(
-                rememberCustomHorizontalBox(
-                    y = {
-                        it[extraKey]
-                    }, box = rememberShapeComponent(
-                        color = Color.Green.copy(alpha = 0.2f),
-                        shape = Shape.Rectangle,
-                    )
-                )
-            )
-        ),
-        modelProducer = modelProducer,
-        modifier = Modifier.padding(vertical = 40.dp, horizontal = 0.dp),
-        zoomState = rememberVicoZoomState(zoomEnabled = false),
-    )
-}
-
-class CustomVerticalAxis(
-    override val position: AxisPosition.Vertical.Start,
-    private var customDrawable: Drawable? = null,
-    private var howFarAboveTheChart: Int,
-    private var howFarBelowTheChart: Int,
-    private var offsetX: Int,
-) : VerticalAxis<AxisPosition.Vertical.Start>(position) {
-    override fun drawBehindChart(context: CartesianDrawContext) {
-        super.drawBehindChart(context)
-        with(context) {
-
-            customDrawable?.let { drawable ->
-                 val drawableTop = bounds.top.toInt() - howFarAboveTheChart
-                val drawableBottom = bounds.bottom.toInt() + howFarBelowTheChart
-                drawable.setBounds(
-                    bounds.left.toInt(),
-                    drawableTop,
-                    bounds.right.toInt() - axisThickness.toInt() + offsetX,
-                    drawableBottom
-                )
-                drawable.draw(context.canvas)
-            }
-            val label = label
-            val labelValues = itemPlacer.getLabelValues(
-                context = context,
-                bounds.height(),
-                getMaxLabelHeight(),
-                AxisPosition.Vertical.Start
-            )
-            val leftTick = bounds.right - bounds.left - axisThickness / 2
-            val rightTick = leftTick + tickLength
-            val yRange = chartValues.getYRange(AxisPosition.Vertical.Start)
-            var tickCenterY: Float
-            val labelX = bounds.right - axisThickness
-
-            labelValues.forEach { labelValue ->
-                tickCenterY =
-                    bounds.bottom - bounds.height() * (labelValue - yRange.minY) / yRange.length +
-                            getLineCanvasYCorrection(tickThickness, labelValue)
-                tick?.drawHorizontal(
-                    context = context,
-                    left = leftTick,
-                    right = rightTick,
-                    centerY = tickCenterY
-                )
-                label ?: return@forEach
-                drawLabel(
-                    context = this,
-                    label = label,
-                    labelText = valueFormatter.format(labelValue, chartValues, position),
-                    labelX = labelX,
-                    tickCenterY = tickCenterY,
-                )
-            }
-        }
-    }
-
-    override fun getDesiredWidth(context: CartesianMeasureContext, height: Float): Float =
-        with(context) {
-            val drawableWidth = customDrawable?.let { drawable ->
-                (drawable.intrinsicWidth/2).toFloat()
-            }.orZero
-            val titleComponentWidth =
-                title
-                    ?.let { title ->
-                        titleComponent?.getWidth(
-                            context = this,
-                            text = title,
-                            rotationDegrees = 90f,
-                            height = bounds.height().toInt(),
-                        )
-                    }
-                    .orZero
-            val labelSpace =
-                when (horizontalLabelPosition) {
-                    HorizontalLabelPosition.Outside -> {
-                        val maxLabelWidth = getMaxLabelWidth(height).ceil
-                        extraStore[maxLabelWidthKey] = maxLabelWidth
-                        maxLabelWidth + tickLength
-                    }
-                    HorizontalLabelPosition.Inside -> 0f
-                }
-
-            when (val constraint = sizeConstraint) {
-                is SizeConstraint.Auto -> {
-                    if(drawableWidth == 0f){
-                        (titleComponentWidth + axisThickness + labelSpace)
-                            .coerceIn(
-                                minimumValue = constraint.minSizeDp.pixels,
-                                maximumValue = constraint.maxSizeDp.pixels,
-                            )
-                    }
-                else
-                    (axisThickness + drawableWidth).coerceIn(
-                        minimumValue = constraint.minSizeDp.pixels,
-                        maximumValue = constraint.maxSizeDp.pixels,
-                    )
-                }
-
-                is SizeConstraint.Exact -> constraint.sizeDp.pixels
-                is SizeConstraint.Fraction -> canvasBounds.width() * constraint.fraction
-                is SizeConstraint.TextWidth ->
-                    label
-                        ?.getWidth(
-                            context = this,
-                            text = constraint.text,
-                            rotationDegrees = labelRotationDegrees,
-                        )
-                        .orZero + axisThickness.half + drawableWidth
-            }
-        }
-
-    override fun drawAboveChart(context: CartesianDrawContext) {
-        // super.drawAboveChart(context)
-        with(context){
-
-            title?.let { title ->
-                titleComponent?.drawText(
-                    context = this,
-                    text = title,
-                    textX = bounds.left,
-                    textY = bounds.centerY(),
-                    horizontalPosition =HorizontalPosition.End,
-                    verticalPosition = VerticalPosition.Center,
-                    rotationDegrees = 90f * if (position.isStart) -1f else 1f,
-                    maxTextHeight = bounds.height().toInt(),
-                )
-            }
-        }
-    }
-
-    class Builder {
-        private var custom: Drawable? = null
-        private var howFarAboveTheChart : Int = 0
-        private var howFarBelowTheChart : Int = 0
-        private var offsetX : Int = 0
-        fun setCustomDrawable(drawable: Drawable?) = apply { custom = drawable }
-        fun setTop(top : Int) : Builder = apply { howFarAboveTheChart = top }
-        fun setBottom(bottom : Int) : Builder = apply { howFarBelowTheChart = bottom }
-        fun setOffset(adjustX: Int) : Builder = apply { offsetX = adjustX }
-
-        fun build()  = CustomVerticalAxis(
-            position = AxisPosition.Vertical.Start,
-            customDrawable = custom,
-            howFarAboveTheChart =howFarAboveTheChart,
-            howFarBelowTheChart=howFarBelowTheChart,
-            offsetX = offsetX
-        )
-    }
-}
-
-
-@Composable
-fun rememberDrawableAxisVerticalStart(
-    startAxis: VerticalAxis<AxisPosition.Vertical.Start> = rememberStartAxis(),
-    customDrawable: Drawable? = null,
-    howFarAboveTheChart: Dp = 0.dp,
-    howFarBelowTheChart: Dp =0.dp,
-    offsetX: Dp = 0.dp,
-): CustomVerticalAxis {
-    val (top,below,offset) = with(LocalDensity.current){
-            Triple(howFarAboveTheChart.roundToPx(),howFarBelowTheChart.roundToPx(),offsetX.roundToPx())
-    }
-    return remember {
-
-        CustomVerticalAxis.Builder()
-            .setCustomDrawable(customDrawable)
-            .setTop(top)
-            .setBottom(below)
-            .setOffset(offset)
-            .build().apply {
-            this.label = startAxis.label
-            this.axisLine = startAxis.axisLine
-            this.tick = startAxis.tick
-            this.guideline = startAxis.guideline
-            this.valueFormatter = startAxis.valueFormatter
-            this.tickLengthDp = startAxis.tickLengthDp
-            this.sizeConstraint = startAxis.sizeConstraint
-            this.horizontalLabelPosition = VerticalAxis.HorizontalLabelPosition.Outside
-            this.verticalLabelPosition = startAxis.verticalLabelPosition
-            this.itemPlacer = startAxis.itemPlacer
-            this.labelRotationDegrees = startAxis.labelRotationDegrees
-            this.titleComponent = startAxis.titleComponent
-            this.title = startAxis.title
-        }
-    }
-}
-
-class CustomHorizontalBox(
-    private val y: (ExtraStore) -> ClosedFloatingPointRange<Float>,
-    private val box: ShapeComponent,
-    private val labelComponent: TextComponent? = null,
-    private val label: (ExtraStore) -> CharSequence = { getLabel(y(it)) },
-    private val horizontalLabelPosition: HorizontalPosition = HorizontalPosition.Start,
-    private val verticalLabelPosition: VerticalPosition = VerticalPosition.Top,
-    private val labelRotationDegrees: Float = 0f,
-    private val verticalAxisPosition: AxisPosition.Vertical? = null,
-) : Decoration {
-    override fun onDrawBehindChart(context: CartesianDrawContext, bounds: RectF) {
-        with(context) {
-            val yRange = chartValues.getYRange(verticalAxisPosition)
-            val extraStore = chartValues.model.extraStore
-            val y = y(extraStore)
-            val label = label(extraStore)
-            val topY =
-                bounds.bottom - (y.endInclusive - yRange.minY) / yRange.length * bounds.height()
-            val bottomY = bounds.bottom - (y.start - yRange.minY) / yRange.length * bounds.height()
-            val labelY =
-                when (verticalLabelPosition) {
-                    VerticalPosition.Top -> topY
-                    VerticalPosition.Center -> (topY + bottomY).half
-                    VerticalPosition.Bottom -> bottomY
-                }
-            box.draw(context, bounds.left, topY, bounds.right, bottomY)
-            labelComponent?.drawText(
-                context = context,
-                text = label,
-                textX =
-                when (horizontalLabelPosition) {
-                    HorizontalPosition.Start -> bounds.getStart(isLtr)
-                    HorizontalPosition.Center -> bounds.centerX()
-                    HorizontalPosition.End -> bounds.getEnd(isLtr)
-                },
-                textY = labelY,
-                horizontalPosition = -horizontalLabelPosition,
-                verticalPosition =
-                verticalLabelPosition.inBounds(
-                    bounds = bounds,
-                    componentHeight =
-                    labelComponent.getHeight(
-                        context = context,
-                        text = label,
-                        rotationDegrees = labelRotationDegrees,
-                    ),
-                    y = labelY,
-                ),
-                maxTextWidth = bounds.width().toInt(),
-                rotationDegrees = labelRotationDegrees,
-            )
-        }
-
-    }
-
-    private fun RectF.getStart(isLtr: Boolean): Float = if (isLtr) left else right
-
-    private fun RectF.getEnd(isLtr: Boolean): Float = if (isLtr) right else left
-
-    /** @suppress */
-    companion object {
-        private val decimalFormat = DecimalFormat("#.##;−#.##")
-
-        fun getLabel(y: ClosedFloatingPointRange<Float>): String =
-            "${decimalFormat.format(y.start)}–${decimalFormat.format(y.endInclusive)}"
-    }
-
-    operator fun HorizontalPosition.unaryMinus() =
-        when (this) {
-            HorizontalPosition.Start -> HorizontalPosition.End
-            HorizontalPosition.Center -> HorizontalPosition.Center
-            HorizontalPosition.End -> HorizontalPosition.Start
-        }
-
-    private fun VerticalPosition.inBounds(
-        bounds: RectF,
-        distanceFromPoint: Float = 0f,
-        componentHeight: Float,
-        y: Float,
-    ): VerticalPosition {
-        val topFits = y - distanceFromPoint - componentHeight >= bounds.top
-        val centerFits =
-            y - componentHeight.half >= bounds.top && y + componentHeight.half <= bounds.bottom
-        val bottomFits = y + distanceFromPoint + componentHeight <= bounds.bottom
-
-        return when (this) {
-            VerticalPosition.Top -> if (topFits) this else VerticalPosition.Bottom
-            VerticalPosition.Bottom -> if (bottomFits) this else VerticalPosition.Top
-            VerticalPosition.Center ->
-                when {
-                    centerFits -> this
-                    topFits -> VerticalPosition.Top
-                    else -> VerticalPosition.Bottom
-                }
-        }
-    }
-}
-
-@Composable
-fun rememberCustomHorizontalBox(
-    y: (ExtraStore) -> ClosedFloatingPointRange<Float>,
-    box: ShapeComponent,
-    labelComponent: TextComponent? = null,
-    label: (ExtraStore) -> CharSequence = { HorizontalBox.getLabel(y(it)) },
-    horizontalLabelPosition: HorizontalPosition = HorizontalPosition.Start,
-    verticalLabelPosition: VerticalPosition = VerticalPosition.Top,
-    labelRotationDegrees: Float = 0f,
-    verticalAxisPosition: AxisPosition.Vertical? = null,
-): CustomHorizontalBox =
-    remember(
-        y,
-        box,
-        labelComponent,
-        label,
-        horizontalLabelPosition,
-        verticalLabelPosition,
-        labelRotationDegrees,
-        verticalAxisPosition,
-    ) {
-        CustomHorizontalBox(
-            y,
-            box,
-            labelComponent,
-            label,
-            horizontalLabelPosition,
-            verticalLabelPosition,
-            labelRotationDegrees,
-            verticalAxisPosition,
-        )
-    }
-
-
-inline val Float.ceil: Float
-    get() = ceil(this)
