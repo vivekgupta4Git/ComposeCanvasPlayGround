@@ -33,12 +33,14 @@ import kotlin.math.atan
 import kotlin.math.atan2
 
 @Composable
-fun AnimateTextAlongPath(message : String = "Hello ! Vivek",
-                         textStyle : TextStyle = TextStyle(
-                             color = Magenta,
-                             fontSize = 64.sp,
-                             fontWeight = FontWeight.Bold
-                         )
+fun AnimateTextAlongPath(
+    modifier: Modifier = Modifier,
+    message: String = "Hello ! Vivek",
+    textStyle: TextStyle = TextStyle(
+        color = Magenta,
+        fontSize = 64.sp,
+        fontWeight = FontWeight.Bold
+    )
 ) {
     val infiniteTransition = rememberInfiniteTransition()
     val progress by infiniteTransition.animateFloat(
@@ -55,14 +57,16 @@ fun AnimateTextAlongPath(message : String = "Hello ! Vivek",
 
     val measurePath = remember { PathMeasure() }
     val textWidth = textLayoutResult.getBoundingBox(message.lastIndex).bottomRight.x
-    Canvas(modifier = Modifier
-        .fillMaxSize()) {
+    Canvas(
+        modifier = modifier
+            .fillMaxSize()
+    ) {
         val path = Path().apply {
             val w = size.width
             val h = size.height
 
             // 1. Start at the top left handle
-            moveTo(w * 0.05f, h * 0.10f)
+            moveTo(0f, h * 0.10f)
 
             // 2. The First Cross: Move from top-left to middle-right.
             // We use a high control point to keep the top line relatively straight.
@@ -85,28 +89,28 @@ fun AnimateTextAlongPath(message : String = "Hello ! Vivek",
             cubicTo(
                 x1 = w * 0.30f, y1 = h * 0.10f, // Pulls the curve up and across the first line
                 x2 = w * 0.60f, y2 = h * 0.05f,
-                x3 = w * 0.95f, y3 = h * 0.08f // Final exit point
+                x3 = w * 0.95f, y3 = h * 0.09f // Final exit point
             )
         }
-        drawPath(path = path, color = Color.Gray, style = Stroke(5f))
-        measurePath.setPath(path,false)
+        drawPath(path = path, color = Color.Transparent, style = Stroke(5f))
+        measurePath.setPath(path, false)
         val wordStartAt = measurePath.length - textWidth
         message.forEachIndexed { index, ch ->
             val rect = textLayoutResult.getBoundingBox(index)
             val distance = rect.left + (wordStartAt * progress)
             val pathOffset = measurePath.getPosition(distance)
-            val rotation = measurePath.getTangent(distance).let {tan ->
-                (atan2(tan.y,tan.x) * (180/ PI)).toFloat()
+            val rotation = measurePath.getTangent(distance).let { tan ->
+                (atan2(tan.y, tan.x) * (180 / PI)).toFloat()
             }
             rotate(
                 degrees = rotation,
                 pivot = pathOffset
-            ){
+            ) {
                 drawText(
                     textMeasurer = textMeasure,
                     text = ch.toString(),
                     style = textStyle,
-                    topLeft = pathOffset - Offset(0f,rect.height * .5f),
+                    topLeft = pathOffset - Offset(0f, rect.height * .5f),
                     size = rect.size
                 )
             }
