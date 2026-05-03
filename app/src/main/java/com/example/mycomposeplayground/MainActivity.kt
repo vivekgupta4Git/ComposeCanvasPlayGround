@@ -1,13 +1,5 @@
 package com.example.mycomposeplayground
 
-import AnimateBox
-import AnimateText
-import CustomPointerIcon
-import DraggingAllAround
-import GestureAnimation
-import InterruptDragAnimation
-import TransitionBox
-import UsagePressIconButton
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,20 +7,15 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -49,6 +36,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.mycomposeplayground.ui.PathAnimationLearning
 import com.example.mycomposeplayground.ui.theme.MyComposePlayGroundTheme
 
 class MainActivity : ComponentActivity() {
@@ -56,7 +44,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyComposePlayGroundTheme {
-                // A surface container using the 'background' color from the theme
+                /*// A surface container using the 'background' color from the theme
                 Column(
                     modifier = Modifier.fillMaxSize()
                         .verticalScroll(rememberScrollState()),
@@ -78,7 +66,10 @@ class MainActivity : ComponentActivity() {
                     UsagePressIconButton()
                     ScaleComposable()
                     PressAndHover()
-                }
+                }*/
+                //InfiniteAutoScrollLazyRow(items = List(10) { "${it + 1}" })
+               // FlappyMiniGame()
+                PathAnimationLearning()
             }
         }
     }
@@ -210,11 +201,11 @@ fun CanVasPlay() {
             //      x2 = size.width/2, y2 = size.height)
             moveTo(horizontalMargin, size.height / 2)
             lineTo(size.width / 2 - iconSizeInPx / 2, size.height / 2)
-            quadraticBezierTo(
-                x2 = size.width / 2 - horizontalMargin + iconSizeInPx / 2,
-                y2 = size.height / 2,
+            quadraticTo(
                 x1 = size.width / 2 - horizontalMargin,
                 y1 = size.height / 2 - iconSizeInPx / 2,
+                x2 = size.width / 2 - horizontalMargin + iconSizeInPx / 2,
+                y2 = size.height / 2
             )
             // moveTo(size.width/2 + 200f, size.height/2)
             lineTo(size.width - horizontalMargin, size.height / 2)

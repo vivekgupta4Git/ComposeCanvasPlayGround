@@ -1,3 +1,5 @@
+package com.example.mycomposeplayground
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.Animatable
@@ -16,47 +18,40 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Indication.*
-import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,22 +66,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.node.DelegatableNode
-import androidx.compose.ui.node.DrawModifierNode
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -422,9 +413,101 @@ fun UsagePressIconButton(modifier: Modifier = Modifier) {
         PressIconButton(
             modifier = modifier,
             onClick = {},
-            icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = null) },
+            icon = {
+                //Icon(Icons.Filled.ShoppingCart, contentDescription = null)
+                   },
             text = { Text("Add to cart") }
         )
+    }
+}
+
+
+@Composable
+fun AutoScrollLazyLayoutAnimation(modifier: Modifier = Modifier) {
+    val itemList = List(10) { "${it + 1}"  }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val lazyListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    var autoScrollJob by remember { mutableStateOf<Job?>(null) }
+    var isAutoScrollingActive by remember { mutableStateOf(true) } // To control overall state
+
+    LazyRow(
+        state = lazyListState,
+        modifier = modifier,
+        contentPadding = PaddingValues(10.dp)
+    ) {
+        items(itemList) { item ->
+            LazyItemCard(
+                text = "$item Pressed = $isPressed Scrolling = ${lazyListState.isScrollInProgress}",
+                interactionSource = interactionSource
+            ) {
+
+            }
+        }
+    }
+    // LaunchedEffect to start/stop the auto-scroll when isAutoScrollingActive changes
+    LaunchedEffect(isAutoScrollingActive) {
+        if (isAutoScrollingActive) {
+            // Start the auto-scroll coroutine if not already running
+            if (autoScrollJob == null || autoScrollJob?.isCompleted == true) {
+                autoScrollJob = scope.launch {
+                    while (isActive) { // Use isActive to check for cancellation
+                        // Implement your infinite scroll logic here
+                        // For example:
+                        val nextIndex = (lazyListState.firstVisibleItemIndex + 1) % itemList.size
+                        lazyListState.animateScrollToItem(nextIndex)
+                        delay(1000) // Adjust speed
+                    }
+                }
+            }
+        } else {
+            // Cancel the auto-scroll job if it's active
+            autoScrollJob?.cancel()
+            autoScrollJob = null // Clear the job reference
+        }
+    }
+
+// Observe user interaction to pause/resume
+    val isUserScrolling by remember { derivedStateOf { lazyListState.isScrollInProgress } }
+
+    LaunchedEffect(isUserScrolling) {
+        if (isUserScrolling) {
+            // If user starts scrolling, pause auto-scroll
+            if (isAutoScrollingActive) {
+                autoScrollJob?.cancel()
+                autoScrollJob = null
+                // Optionally set isAutoScrollingActive to false if you want a lasting pause
+                // isAutoScrollingActive = false
+            }
+        } else {
+            // If user stops scrolling, resume auto-scroll after a delay
+            // (Give them time to read/interact after they stop scrolling)
+            delay(2000) // Adjust this delay
+            if (!isAutoScrollingActive && autoScrollJob?.isCompleted == true) { // Or if you set isAutoScrollingActive = false earlier
+                // Resume only if it was paused due to user interaction and not explicitly stopped
+                // autoScrollJob = scope.launch { /* ... resume scroll logic ... */ }
+                // Or simply set isAutoScrollingActive to true to trigger the other LaunchedEffect
+                isAutoScrollingActive = true
+            }
+        }
+    }
+
+}
+
+@Composable
+fun LazyItemCard(modifier: Modifier = Modifier,
+                 text : String,
+                 interactionSource: MutableInteractionSource,
+                 onClick: () -> Unit) {
+    ElevatedCard(modifier = modifier.size(width = 300.dp, height = 100.dp).clickable(
+        enabled = true,
+        interactionSource = interactionSource,
+        indication = null,
+        onClick = onClick
+    ).padding(10.dp)) {
+        Spacer(Modifier.height(20.dp))
+        Text(text, modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
